@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    {{- template "swimlane.labels" . }}
+    app.kubernetes.io/name: {{ .Release.Name }}-node
+  name: {{ .Release.Name }}-node
+spec:
+  ports:
+  - name: http
+    port: 3000
+    protocol: TCP
+    targetPort: 3000
+  selector:
+    app.kubernetes.io/component: swimlane-node
+  type: ClusterIP

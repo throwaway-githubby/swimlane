@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}
+  labels:
+    {{- template "swimlane.labels" . }}
+spec:
+  selector:
+    matchLabels:
+      app: swimlane-node
+  template:
+    metadata:
+      labels:
+        {{ include "swimlane.labels" . | indent 4 }}
+    spec:
+      containers:
+      - name: {{ .Release.Name }}
+        image: "{{ .Values.swimlane.image.repository }}:{{ required "A valid image tag is required" .Values.swimlane.image.tag }}"
+        imagePullPolicy: {{ .Values.swimlane.image.pullPolicy }}
+        securityContext:
+          runAsUser: {{ .Values.swimlane.securityContext.runAsUser }}
+          allowPrivilegeEscalation: {{ .Values.swimlane.securityContext.allowPrivilegeEscalation }}
+        ports:
+        - containerPort: 3000
+        resources:
+          {{- toYaml .Values.swimlane.resources | nindent 12 }}
+        {{- if .Values.swimlane.livenessProbes.enabled }}
+        livenessProbe:
+          failureThreshold: {{ .Values.swimlane.livenessProbes.failureThreshold }}
+          tcpSocket:
+            port: 3000
+          initialDelaySeconds: {{ .Values.swimlane.livenessProbes.initialDelaySeconds }}
+          periodSeconds: {{ .Values.swimlane.livenessProbes.periodSeconds }}
+          successThreshold: 1
+          timeoutSeconds: {{ .Values.swimlane.livenessProbes.timeoutSeconds }}
+        {{- end }}
+        {{- if .Values.swimlane.readinessProbes.enabled }}
+        readinessProbe:
+          failureThreshold: {{ .Values.swimlane.readinessProbes.failureThreshold }}
+          tcpSocket:
+            port: 3000
+          initialDelaySeconds: {{ .Values.swimlane.readinessProbes.initialDelaySeconds }}
+          periodSeconds: {{ .Values.swimlane.readinessProbes.periodSeconds }}
+          successThreshold: 1
+          timeoutSeconds: {{ .Values.swimlane.readinessProbes.timeoutSeconds }}
+        {{- end }}
+        env:
+        - name: NODE_ENV
+          value: {{ .Values.swimlane.node_env }}
+        - name: MONGODB_URL
+          value: mongodb://{{ .Values.swimlane.mongodb.user }}:{{ .Values.swimlane.mongodb.pass }}@{{ .Values.swimlane.mongodb.connection_url }}:27017/?authSource=admin
+      {{- if .Values.swimlane.podAntiAffinity.enabled }}
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 10
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - swimlane-node
+              topologyKey: "failure-domain.beta.kubernetes.io/hostname"
+      {{- end }}

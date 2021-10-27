@@ -1,0 +1,13 @@
+{{- if .Values.swimlane.PodDisruptionBudget.enabled }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ .Release.Name }}-pdb
+  labels:
+    {{- template "swimlane.labels" . }}
+spec:
+  minAvailable: {{ .Values.swimlane.PodDisruptionBudget.minAvailable }}
+  selector:
+    matchLabels:
+      app: swimlane-node
+{{- end }}

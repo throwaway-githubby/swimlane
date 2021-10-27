@@ -1,0 +1,59 @@
+swimlane:
+  node_env: development
+
+  image:
+    repository: alucas052/swimlane-practical
+    pullPolicy: IfNotPresent
+    tag: test
+  
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 250m
+      memory: 200Mi
+
+  securityContext: 
+    runAsUser: 10001
+    allowPrivilegeEscalation: false
+
+  autoscaling: 
+    maxReps: 5
+    minReps: 2
+    cpuTarget: 50 # Making some assumptions with this since I haven't load tested anything.
+
+  podAntiAffinity: # Spread out pods to different nodes if possible
+    enabled: true
+
+  PodDisruptionBudget:
+    enabled: true
+    minAvailable: 1
+
+  # Ideally probes are built into the node app for smarter logic, just going to get some basic TCP checks in place for this
+  livenessProbes:
+    enabled: true
+    # How many failures tolerated before action is taken
+    failureThreshold: 12
+    # Number of seconds after the container has started before probes are initiated
+    initialDelaySeconds: 180
+    # How often to perform the probe
+    periodSeconds: 15
+    # Number of seconds until the probe times out
+    timeoutSeconds: 3  
+
+  readinessProbes:
+    enabled: true
+    # How many failures tolerated before action is taken
+    failureThreshold: 3
+    # Number of seconds after the container has started before probes are initiated
+    initialDelaySeconds: 5
+    # How often to perform the probe
+    periodSeconds: 3
+    # Number of seconds until the probe times out
+    timeoutSeconds: 1
+
+  mongodb:
+    connection_url: mongodb.default.svc.cluster.local
+    user: root
+    pass: 3bk9mffQk1 # would encrypt this using helm-sops, figured it would be out of scope for this.

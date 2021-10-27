@@ -1,0 +1,20 @@
+helmDefaults:
+  timeout: 600
+
+repositories:
+  - name: bitnami
+    url: https://charts.bitnami.com/bitnami
+
+releases:
+  - name: mongodb
+    chart: bitnami/mongodb
+    labels:
+      ordering: required
+    version: 10.28.4
+    values:
+      - auth:
+          rootPassword: 3bk9mffQk1 # Preferably would like this in helm-sops, skipping for this test
+
+  - name: swimlane
+    chart: ../swimlane-chart
+    version: 1.0.0
